@@ -52,10 +52,10 @@ class AGSimple:
     def get_parents(self,fitness : list) -> list:
         parents = []
         for i in range(self.n_ind):
-            while(True):
+            while True:
                 choosen = np.random.choice(self.n_ind,2,replace=False)
                 best = choosen[np.argmin([fitness[j] for j in choosen])]
-                if  i == 0 or best != parents[-1]:
+                if (i % 2 != 0) or best != parents[-1]:
                     parents.append(best)
                     break
         return parents
