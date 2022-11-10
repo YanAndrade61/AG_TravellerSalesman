@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 def txt2matrix(path: str) -> list:
     with open(path,'r') as f:
-        matrix = [list(map(int,line.strip().split(sep=" "))) for line in f.readlines()]
+        matrix = [list(map(float,line.strip().split(sep=" "))) for line in f.readlines()]
     return matrix
 
 def load_tsp(path: str) -> tuple:
@@ -37,5 +37,5 @@ def AGSimple_simulate(path_results, dist_matrix, n_gen, n_ind, mutate_rate):
 
     for n_gen,n_ind,mutate_rate in tqdm(it.product(n_gen,n_ind,mutate_rate),desc="Runing genetics "):
         for i in range(10):
-            AGSimple(dist_matrix,n_gen,n_ind,mutate_rate,i).simulate(path_results)
+            AGSimple(dist_matrix,n_gen,n_ind,mutate_rate,0,i).simulate(path_results)
     pass

@@ -1,22 +1,29 @@
 import numpy as np
 import random
-
+from heuristics.greedy import greedy_path
 
 class AGSimple:
 
-    def __init__(self,dist: list(), n_ind: int = 20, n_gen: int = 500, mutate_rate: float = 0.1, i: int=0):
+    def __init__(self,dist: list(), n_ind: int = 20, n_gen: int = 500, mutate_rate: float = 0.1,greedy_rate: float = 0, i: int=0):
         self.dist = dist
         self.n_cities = len(dist[0])
         self.n_ind = n_ind
         self.n_gen = n_gen
         self.mutate_rate = mutate_rate
+        self.greedy_rate = greedy_rate
         self.i = i
 
     def simulate(self,path_results) -> None:
         
         individuals = [np.random.choice(self.n_cities, self.n_cities, replace=False) 
                         for i in range(self.n_ind)]
-        
+                
+        # 10% dos individuos sao inicializados por um caminho guloso
+        greedy_starts = np.random.choice(self.n_cities, int(self.n_ind*self.greedy_rate), replace=False) 
+        for i,start in enumerate(greedy_starts):
+            individuals[i] = np.array(greedy_path(self.dist.copy(),start))
+            pass
+
         for i in range(self.n_gen):
 
             fitness_lst = self.fitness(individuals)        
@@ -55,7 +62,7 @@ class AGSimple:
             while True:
                 choosen = np.random.choice(self.n_ind,2,replace=False)
                 best = choosen[np.argmin([fitness[j] for j in choosen])]
-                if (i % 2 != 0) or best != parents[-1]:
+                if (i % 2 != 0) or (i == 0) or best != parents[-1]:
                     parents.append(best)
                     break
         return parents
