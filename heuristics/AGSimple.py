@@ -18,26 +18,36 @@ class AGSimple:
         individuals = [np.random.choice(self.n_cities, self.n_cities, replace=False) 
                         for i in range(self.n_ind)]
                 
-        # 10% dos individuos sao inicializados por um caminho guloso
+        # % dos individuos sao inicializados por um caminho guloso
         greedy_starts = np.random.choice(self.n_cities, int(self.n_ind*self.greedy_rate), replace=False) 
         for i,start in enumerate(greedy_starts):
             individuals[i] = np.array(greedy_path(self.dist.copy(),start))
-            pass
 
+        estagna = 0
+        best = 0
         for i in range(self.n_gen):
-
+            
             fitness_lst = self.fitness(individuals)        
             
-            parents = self.get_parents(fitness_lst)
+            parents = self.tournament_selection(fitness_lst)
             
             new_ind = self.ox_cross(individuals,parents)
             
-            new_ind = self.mutate(new_ind)
-            
+            if estagna >= 100:
+                new_ind = self.mutate_pos(new_ind)
+                estagna=0
+            else:
+                new_ind = self.mutate_ind(new_ind)
+
             menor = np.argmin(fitness_lst)
             
             new_ind[0] = individuals[menor]
-
+            if (best == fitness_lst[menor]):
+               estagna += 1
+            else:
+                best = fitness_lst[menor]
+                estagna = 0 
+            
             with open(path_results,"a") as f:
                 print(f"{self.n_gen}|{self.n_ind}|{self.mutate_rate},{self.i},{i},{fitness_lst[menor]}",file=f)
 
@@ -56,7 +66,7 @@ class AGSimple:
 
         return fitness_lst
     
-    def get_parents(self,fitness : list) -> list:
+    def tournament_selection(self,fitness : list) -> list:
         parents = []
         for i in range(self.n_ind):
             while True:
@@ -76,8 +86,8 @@ class AGSimple:
             point1 = random.randint(1,self.n_cities-2)
             point2 = random.randint(point1,self.n_cities-1)
             
-            a_reorder = np.concatenate([a[point2:],a[:point1],a[point1:point2]])
-            b_reorder = np.concatenate([b[point2:],b[:point1],b[point1:point2]])
+            a_reorder = np.concatenate([a[point2:],a[:point2]])
+            b_reorder = np.concatenate([b[point2:],b[:point2]])
 
             new_ind1 = [-1]*self.n_cities
             new_ind2 = [-1]*self.n_cities
@@ -100,12 +110,23 @@ class AGSimple:
 
         return new_individuals
 
-    def mutate(self,individuals: list):
+    def mutate_ind(self,individuals: list):
         
         for i in range(self.n_ind):
             rate = random.random()
             if rate <= self.mutate_rate:
                 pos1,pos2 = np.random.choice(self.n_cities, 2, replace=False)
                 individuals[i][pos1],individuals[i][pos2] = individuals[i][pos2],individuals[i][pos1]
+    
+        return individuals
+    
+    def mutate_pos(self,individuals: list):
+        
+        for i in range(self.n_ind):
+            for j in range(self.n_cities):
+                rate = random.random()
+                if rate <= self.mutate_rate:
+                    pos1 = np.random.choice(self.n_cities, 1, replace=False)
+                    individuals[i][j],individuals[i][pos1[0]] = individuals[i][pos1[0]],individuals[i][j]
     
         return individuals

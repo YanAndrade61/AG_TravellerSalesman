@@ -20,8 +20,10 @@ def plot_results(path_results, path_fig):
     
     best_parameter = data_mean.min()['n_gen|n_ind|mutate_rate']
     data_parameter = data[data["n_gen|n_ind|mutate_rate"] == best_parameter]
+
     it_ls = data_parameter.groupby(by="it").agg({"best": lambda x: list(x)})
 
+    plt.figure()
     for lst in it_ls['best']:
         plt.plot(range(len(it_ls['best'][0])),lst)
 
@@ -30,12 +32,19 @@ def plot_results(path_results, path_fig):
     plt.ylabel("Fitness")
     plt.savefig(path_fig)
 
-def AGSimple_simulate(path_results, dist_matrix, n_gen, n_ind, mutate_rate):
+def AGSimple_simulate( dist_matrix, n_gen, n_ind, mutate_rate):
     
-    with open(path_results,"w") as f:
-        f.write("n_gen|n_ind|mutate_rate,it,gen,best\n")
+    paths = [(0,"result_normal_lau15.csv","result_normal_lau15.png"),
+             (0.01,"result_greddy5_lau15.csv","result_greedy5_lau15.png"),
+             (0.1,"result_greddy10_lau15.csv","result_greedy10_lau15.png")]
 
-    for n_gen,n_ind,mutate_rate in tqdm(it.product(n_gen,n_ind,mutate_rate),desc="Runing genetics "):
-        for i in range(10):
-            AGSimple(dist_matrix,n_gen,n_ind,mutate_rate,0,i).simulate(path_results)
+    for rate,path_results,path_fig in paths:
+        with open(path_results,"w") as f:
+            f.write("n_gen|n_ind|mutate_rate,it,gen,best\n")
+
+        for gen,ind,mutate in tqdm(it.product(n_gen,n_ind,mutate_rate),desc="Runing genetics "):
+            for i in range(10):
+                AGSimple(dist_matrix,gen,ind,mutate,rate,i).simulate(path_results)
+        
+        plot_results(path_results,path_fig)
     pass
